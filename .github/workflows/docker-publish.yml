@@ -1,0 +1,171 @@
+name: Docker
+
+on:
+  push:
+    branches: [ "master" ]
+    # Publish semver tags as releases. The MariaDB version to build is derived
+    # from the tag, e.g. v12.0.0 builds MariaDB 12, v11.0.0 builds MariaDB 11
+    # (see the "Determine MariaDB version" step).
+    tags: [ 'v*.*.*' ]
+  pull_request:
+    branches: [ "master" ]
+  # Manual build of an arbitrary version (smoke test only, never publishes).
+  workflow_dispatch:
+    inputs:
+      mariadb_version:
+        description: "MariaDB version to build (e.g. 10, 11, 12, 11.4). Smoke test, no publish."
+        required: false
+        default: ""
+
+env:
+  REGISTRY_DOCKERHUB: docker.io
+  REGISTRY_GHCR: ghcr.io
+  # github.repository as <account>/<repo>
+  IMAGE_NAME: ${{ github.repository }}
+  # login is only needed when we actually push (on tag pushes); gating it
+  # here keeps PR/branch builds green, incl. Dependabot/fork PRs that have
+  # no access to the registry secrets.
+  IS_RELEASE: ${{ startsWith(github.ref, 'refs/tags/v') && github.event_name != 'pull_request' }}
+  # The newest MariaDB version label: the single source of truth for which release
+  # gets the `latest` tag. Bump this when releasing a new newest version.
+  LATEST_VERSION: "12"
+
+
+# Third-party actions are SHA-pinned (with version comment) to defend
+# against tag-move attacks on a compromised action repo. GitHub-owned
+# actions/* are pinned by major - they're considered trusted. Dependabot
+# (.github/dependabot.yml) bumps the pins (SHA + comment) automatically.
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      # This is used to complete the identity challenge
+      # with sigstore/fulcio when running outside of PRs.
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      # Determine which MariaDB version to build, as a "version label" that is both
+      # the published Docker tag and the `mariadb:<label>` base image:
+      #   - tag push (v12.0.0)        -> the tag's major (12)
+      #   - manual run with an input  -> that input
+      #   - branch push / PR          -> LATEST_VERSION (build the newest)
+      # MariaDB's published lines are bare majors (10, 11, 12); each moving tag
+      # tracks the newest release of that series (10 -> 10.11 LTS, 11 -> 11.8 LTS,
+      # 12 -> newest). The label drives the build-arg, the published tag, and the
+      # platform set.
+      - name: Determine MariaDB version
+        id: myver
+        env:
+          REF_TYPE: ${{ github.ref_type }}
+          REF_NAME: ${{ github.ref_name }}
+          INPUT_VERSION: ${{ github.event.inputs.mariadb_version }}
+        run: |
+          if [ -n "$INPUT_VERSION" ]; then
+            label="$INPUT_VERSION"
+          elif [ "$REF_TYPE" = "tag" ]; then
+            ver="${REF_NAME#v}"          # v12.0.0 -> 12.0.0
+            label="${ver%%.*}"           # 12
+          else
+            label="$LATEST_VERSION"
+          fi
+          # Validate: digits with at most one dot (guards the mariadb:<label> base
+          # image ref and the published tag against bad input / injection). Releases
+          # use a bare major; a dotted minor (e.g. 11.4) is allowed for manual
+          # smoke-test builds only.
+          case "$label" in
+            ''|*[!0-9.]*|*.*.*) echo "::error::invalid MariaDB version label: '$label'"; exit 1 ;;
+          esac
+          # All published MariaDB lines (10, 11, 12) ship amd64 + arm64.
+          platforms="linux/amd64,linux/arm64"
+          echo "label=${label}" >> "$GITHUB_OUTPUT"
+          echo "platforms=${platforms}" >> "$GITHUB_OUTPUT"
+          echo "Building MariaDB version: ${label} (platforms: ${platforms})"
+
+      # Install the cosign tool except on PR
+      # https://github.com/sigstore/cosign-installer
+      # Pinned to v3 (cosign v2.x) so we get the current Sigstore TUF root.
+      - name: Install cosign
+        if: ${{ startsWith(github.ref, 'refs/tags/v') && github.event_name != 'pull_request' }}
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6  # v4.1.2
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@06116385d9baf250c9f4dcb4858b16962ea869c3  # v4.1.0
+
+      - name: Setup Docker buildx
+        uses: docker/setup-buildx-action@4d04d5d9486b7bd6fa91e7baf45bbb4f8b9deedd  # v4.0.0
+        with:
+          platforms: linux/amd64,linux/arm64
+
+      # Login against Docker Hub
+      # https://github.com/docker/login-action
+      - name: Log into Docker Hub
+        if: ${{ env.IS_RELEASE == 'true' }}
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121  # v4.1.0
+        with:
+          registry: ${{ env.REGISTRY_DOCKERHUB }}
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # Login against GitHub Container Registry
+      - name: Log into GHCR
+        if: ${{ env.IS_RELEASE == 'true' }}
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121  # v4.1.0
+        with:
+          registry: ${{ env.REGISTRY_GHCR }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Extract metadata (tags, labels) for Docker
+      # https://github.com/docker/metadata-action
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@030e881283bb7a6894de51c315a6bfe6a94e05cf  # v6.0.0
+        with:
+          images: |
+            ${{ env.REGISTRY_DOCKERHUB }}/${{ env.IMAGE_NAME }}
+            ${{ env.REGISTRY_GHCR }}/${{ env.IMAGE_NAME }}
+          # Never auto-assign `latest`; emit our computed label and (for the
+          # newest version only) `latest` explicitly below. We drive the tags
+          # from the version-label step so republishing an older line can never
+          # steal `latest`.
+          flavor: |
+            latest=false
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=raw,value=${{ steps.myver.outputs.label }},enable=${{ github.ref_type == 'tag' }}
+            type=raw,value=latest,enable=${{ github.ref_type == 'tag' && steps.myver.outputs.label == env.LATEST_VERSION }}
+      # Build and push Docker image with Buildx (don't push on PR)
+      # https://github.com/docker/build-push-action
+      - name: Build and push Docker image
+        id: build-and-push
+        uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f  # v7.1.0
+        with:
+          context: .
+          build-args: |
+            MARIADB_VERSION=${{ steps.myver.outputs.label }}
+          push: ${{ startsWith(github.ref, 'refs/tags/v') && github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          platforms: ${{ steps.myver.outputs.platforms }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+
+      # Sign the resulting Docker image digest except on PRs.
+      # https://github.com/sigstore/cosign
+      - name: Sign the published Docker image
+        if: ${{ startsWith(github.ref, 'refs/tags/v') && github.event_name != 'pull_request' }}
+        # cosign v2 keyless signing uses the GHA OIDC token automatically
+        # (no COSIGN_EXPERIMENTAL needed). --yes skips v2's interactive
+        # confirmation prompt, which would otherwise hang in CI.
+        env:
+          TAGS: ${{ steps.meta.outputs.tags }}
+          DIGEST: ${{ steps.build-and-push.outputs.digest }}
+        run: echo "$TAGS" | xargs -I {} cosign sign --yes {}@"$DIGEST"
