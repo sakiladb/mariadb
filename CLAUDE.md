@@ -5,8 +5,8 @@ Maintainer guide for **`sakiladb/mariadb`**, a MariaDB Docker image preloaded wi
 [Docker Hub](https://hub.docker.com/r/sakiladb/mariadb) and
 [GitHub Container Registry](https://github.com/sakiladb/mariadb/pkgs/container/mariadb).
 
-> One of the [`sakiladb`](https://github.com/sakiladb) image family (`postgres`, `mysql`,
-> `sqlserver`, `oracle`, `clickhouse`, `rqlite`, `mariadb`). The release machinery in
+> One of the [`sakiladb`](https://github.com/sakiladb) image family (`postgres`, `mysql`, `mariadb`,
+> `sqlserver`, `oracle`, `clickhouse`, `rqlite`). The release machinery in
 > [How releases work](#how-releases-work) is **shared across the family** (the reference template
 > lives in [`sakiladb/postgres`](https://github.com/sakiladb/postgres)); the build details in
 > [How the image is built](#how-the-image-is-built) are **MariaDB-specific**. The org-level landing
