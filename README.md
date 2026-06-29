@@ -1,7 +1,8 @@
 # sakiladb/mariadb
 
-A MariaDB Docker image preloaded with the [Sakila](https://dev.mysql.com/doc/sakila/en/) sample
-database. One of the [`sakiladb`](https://github.com/sakiladb) image family.
+A [MariaDB](https://mariadb.org/) Docker image preloaded with the
+[Sakila](https://dev.mysql.com/doc/sakila/en/) sample database. One of the
+[`sakiladb`](https://github.com/sakiladb) image family.
 
 These images exist primarily as test fixtures for [`sq`](https://github.com/neilotoole/sq), a
 command-line tool for querying SQL databases and structured data, but they are free for anyone to
