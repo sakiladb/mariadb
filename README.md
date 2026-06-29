@@ -124,9 +124,9 @@ Each MariaDB version is published as its own image tag. `latest` tracks the newe
 
 | MariaDB | sakiladb Release | Architecture     | Docker Hub                       | GitHub Container Registry                |
 |---------|------------------|------------------|----------------------------------|------------------------------------------|
-| 12      | `v12.0.0`        | `amd64`, `arm64` | `sakiladb/mariadb:12`, `:latest` | `ghcr.io/sakiladb/mariadb:12`, `:latest` |
-| 11      | `v11.0.0`        | `amd64`, `arm64` | `sakiladb/mariadb:11`            | `ghcr.io/sakiladb/mariadb:11`            |
-| 10      | `v10.0.0`        | `amd64`, `arm64` | `sakiladb/mariadb:10`            | `ghcr.io/sakiladb/mariadb:10`            |
+| 12      | `v12.0.0`        | `amd64`, `arm64` | [`sakiladb/mariadb:12`](https://hub.docker.com/r/sakiladb/mariadb), [`:latest`](https://hub.docker.com/r/sakiladb/mariadb) | [`ghcr.io/sakiladb/mariadb:12`](https://github.com/sakiladb/mariadb/pkgs/container/mariadb), [`:latest`](https://github.com/sakiladb/mariadb/pkgs/container/mariadb) |
+| 11      | `v11.0.0`        | `amd64`, `arm64` | [`sakiladb/mariadb:11`](https://hub.docker.com/r/sakiladb/mariadb) | [`ghcr.io/sakiladb/mariadb:11`](https://github.com/sakiladb/mariadb/pkgs/container/mariadb) |
+| 10      | `v10.0.0`        | `amd64`, `arm64` | [`sakiladb/mariadb:10`](https://hub.docker.com/r/sakiladb/mariadb) | [`ghcr.io/sakiladb/mariadb:10`](https://github.com/sakiladb/mariadb/pkgs/container/mariadb) |
 
 The tags follow MariaDB's bare-major scheme, and each moving major tracks the newest release in that
 series: **`12`** is the newest line (gets `:latest`), **`11`** tracks the **11.8 LTS**, and **`10`**
