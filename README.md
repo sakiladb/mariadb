@@ -124,7 +124,7 @@ Each MariaDB version is published as its own image tag. `latest` tracks the newe
 
 | MariaDB | sakiladb Release | Architecture     | Docker Hub                       | GitHub Container Registry                |
 |---------|------------------|------------------|----------------------------------|------------------------------------------|
-| 12      | `v12.0.0`        | `amd64`, `arm64` | [`sakiladb/mariadb:12`](https://hub.docker.com/r/sakiladb/mariadb), [`:latest`](https://hub.docker.com/r/sakiladb/mariadb) | [`ghcr.io/sakiladb/mariadb:12`](https://github.com/sakiladb/mariadb/pkgs/container/mariadb), [`:latest`](https://github.com/sakiladb/mariadb/pkgs/container/mariadb) |
+| 12      | `v12.0.1`        | `amd64`, `arm64` | [`sakiladb/mariadb:12`](https://hub.docker.com/r/sakiladb/mariadb), [`:latest`](https://hub.docker.com/r/sakiladb/mariadb) | [`ghcr.io/sakiladb/mariadb:12`](https://github.com/sakiladb/mariadb/pkgs/container/mariadb), [`:latest`](https://github.com/sakiladb/mariadb/pkgs/container/mariadb) |
 | 11      | `v11.0.0`        | `amd64`, `arm64` | [`sakiladb/mariadb:11`](https://hub.docker.com/r/sakiladb/mariadb) | [`ghcr.io/sakiladb/mariadb:11`](https://github.com/sakiladb/mariadb/pkgs/container/mariadb) |
 | 10      | `v10.0.0`        | `amd64`, `arm64` | [`sakiladb/mariadb:10`](https://hub.docker.com/r/sakiladb/mariadb) | [`ghcr.io/sakiladb/mariadb:10`](https://github.com/sakiladb/mariadb/pkgs/container/mariadb) |
 
@@ -152,6 +152,8 @@ version; the version is derived from the tag, so there are no per-version branch
 
 ### 2026-06-28
 
+- **Maintenance release** (`v12.0.1`): Dependabot updated the pinned GitHub Actions, plus
+  documentation updates. The Sakila dataset and schema are unchanged.
 - **Initial release**: MariaDB `10`, `11`, `12`, each multi-arch (`amd64` + `arm64`), published to
   Docker Hub and GHCR and cosign-signed. The fixture is loaded from the same Sakila schema and data
   as `sakiladb/mysql` (16 tables + 7 views, faithful original data), and each image declares a Docker
