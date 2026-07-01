@@ -129,9 +129,9 @@ Each MariaDB version is published as its own image tag. `latest` tracks the newe
 
 | MariaDB | sakiladb Release | Architecture     | Docker Hub                       | GitHub Container Registry                |
 |---------|------------------|------------------|----------------------------------|------------------------------------------|
-| 12      | `v12.0.1`        | `amd64`, `arm64` | [`sakiladb/mariadb:12`](https://hub.docker.com/r/sakiladb/mariadb), [`:latest`](https://hub.docker.com/r/sakiladb/mariadb) | [`ghcr.io/sakiladb/mariadb:12`](https://github.com/sakiladb/mariadb/pkgs/container/mariadb), [`:latest`](https://github.com/sakiladb/mariadb/pkgs/container/mariadb) |
-| 11      | `v11.0.0`        | `amd64`, `arm64` | [`sakiladb/mariadb:11`](https://hub.docker.com/r/sakiladb/mariadb) | [`ghcr.io/sakiladb/mariadb:11`](https://github.com/sakiladb/mariadb/pkgs/container/mariadb) |
-| 10      | `v10.0.0`        | `amd64`, `arm64` | [`sakiladb/mariadb:10`](https://hub.docker.com/r/sakiladb/mariadb) | [`ghcr.io/sakiladb/mariadb:10`](https://github.com/sakiladb/mariadb/pkgs/container/mariadb) |
+| 12      | `v12.0.2`        | `amd64`, `arm64` | [`sakiladb/mariadb:12`](https://hub.docker.com/r/sakiladb/mariadb), [`:latest`](https://hub.docker.com/r/sakiladb/mariadb) | [`ghcr.io/sakiladb/mariadb:12`](https://github.com/sakiladb/mariadb/pkgs/container/mariadb), [`:latest`](https://github.com/sakiladb/mariadb/pkgs/container/mariadb) |
+| 11      | `v11.0.1`        | `amd64`, `arm64` | [`sakiladb/mariadb:11`](https://hub.docker.com/r/sakiladb/mariadb) | [`ghcr.io/sakiladb/mariadb:11`](https://github.com/sakiladb/mariadb/pkgs/container/mariadb) |
+| 10      | `v10.0.1`        | `amd64`, `arm64` | [`sakiladb/mariadb:10`](https://hub.docker.com/r/sakiladb/mariadb) | [`ghcr.io/sakiladb/mariadb:10`](https://github.com/sakiladb/mariadb/pkgs/container/mariadb) |
 
 The tags follow MariaDB's bare-major scheme, and each moving major tracks the newest release in that
 series: **`12`** is the newest line (gets `:latest`), **`11`** tracks the **11.8 LTS**, and **`10`**
@@ -145,7 +145,9 @@ tracking sakiladb's own revisions (e.g. `v12.0.0` → `v12.0.1`).
 
 Every version is published to both [Docker Hub](https://hub.docker.com/r/sakiladb/mariadb) and
 [GitHub Container Registry](https://github.com/sakiladb/mariadb/pkgs/container/mariadb), and is
-signed with [cosign](https://github.com/sigstore/cosign).
+signed with [cosign](https://github.com/sigstore/cosign). Each image also carries
+[SLSA build provenance](https://slsa.dev/) and an SPDX [SBOM](https://spdx.dev/) attestation
+(verify with `gh attestation verify`).
 
 ## Releasing a new version
 
@@ -154,6 +156,15 @@ version; the version is derived from the tag, so there are no per-version branch
 [CLAUDE.md](./CLAUDE.md) for the full, repeatable procedure.
 
 ## Changelog
+
+### 2026-06-30
+
+- **Supply-chain attestations** (`v12.0.2`, with the `11` and `10` lines republished
+  as `v11.0.1` / `v10.0.1` so every line carries it): published images now carry
+  [SLSA build provenance](https://slsa.dev/) and an SPDX [SBOM](https://spdx.dev/)
+  attestation, alongside the existing cosign signature (as OCI referrers on Docker
+  Hub and GHCR and in GitHub's attestation store; verify with `gh attestation verify`).
+  Each release also self-verifies its attestations. The dataset and schema are unchanged.
 
 ### 2026-06-28
 
